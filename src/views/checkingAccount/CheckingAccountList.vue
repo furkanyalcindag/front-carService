@@ -16,20 +16,68 @@
             </CCardHeader>
             <template>
               <CCardBody>
-<!--                <div>-->
-<!--                  <CAlert color="success" :show="isSuccess">-->
-<!--                    Servis Durumu Başarıyla Değiştirildi-->
-<!--                  </CAlert>-->
+                <!--                <div>-->
+                <!--                  <CAlert color="success" :show="isSuccess">-->
+                <!--                    Servis Durumu Başarıyla Değiştirildi-->
+                <!--                  </CAlert>-->
 
-<!--                </div>-->
+                <!--                </div>-->
+
+
+                <CRow>
+
+                  <!--                  <CAlert color="success" :show="isSuccess">-->
+                  <!--                    Servis Durumu Başarıyla Değiştirildi-->
+                  <!--                  </CAlert>-->
+
+                  <CCol lg="3" style="float: right">
+
+
+                    <CInput
+
+                        description=""
+                        autocomplete="autocomplete"
+                        placeholder="Plaka"
+                        v-model="plateFilter"
+
+
+                    />
+
+                  </CCol>
+                  <CCol lg="3" style="float: right">
+
+
+                    <CInput
+
+                        description=""
+                        autocomplete="autocomplete"
+                        placeholder="Firma"
+                        v-model="customerFilter"
+
+
+                    />
+
+                  </CCol>
+
+                  <CCol lg="3">
+
+
+                    <CButton @click="getCheckingAccountList()" color="success">Ara</CButton>
+
+                  </CCol>
+
+
+                </CRow>
+
 
                 <CDataTable
                     :items="computedItems"
                     :fields="fieldsTable"
-                    column-filter
+
                     :border="true"
-                    :items-per-page="10"
-                    :activePage="4"
+
+
+                    :loading="load"
                     hover
                     sorter
                     pagination
@@ -78,6 +126,18 @@
                     </CCollapse>
                   </template>
                 </CDataTable>
+
+                <template>
+                  <div>
+
+                    <CPagination
+                        :activePage.sync="page"
+                        :pages="pageCount"
+                        size="sm"
+                        align="end"
+                    />
+                  </div>
+                </template>
 
 
               </CCardBody>
@@ -153,18 +213,18 @@
             <CCard v-if="showMakePayment">
               <template>
                 <CCardBody>
-<!--                  <div>-->
+                  <!--                  <div>-->
 
 
-<!--                    <CAlert-->
-<!--                        v-for="(value,key) in errors"-->
-<!--                        :key="value.message"-->
-<!--                        color="danger"-->
-<!--                        :show="isError"-->
-<!--                    >-->
-<!--                      {{ key }}: {{ value[0] }}-->
-<!--                    </CAlert>-->
-<!--                  </div>-->
+                  <!--                    <CAlert-->
+                  <!--                        v-for="(value,key) in errors"-->
+                  <!--                        :key="value.message"-->
+                  <!--                        color="danger"-->
+                  <!--                        :show="isError"-->
+                  <!--                    >-->
+                  <!--                      {{ key }}: {{ value[0] }}-->
+                  <!--                    </CAlert>-->
+                  <!--                  </div>-->
                   <CRow>
                     <CCol lg="12">
                       <CInput
@@ -262,7 +322,7 @@
         <CButtonClose @click="paymentsModal = false" class="text-white"/>
       </template>
       <template #footer>
-         <CButton @click="getPaymentMovementPdf" color="primary" class="float-right">Ekstre</CButton>
+        <CButton @click="getPaymentMovementPdf" color="primary" class="float-right">Ekstre</CButton>
         <CButton @click="paymentsModal = false" color="danger">Kapat</CButton>
 
       </template>
@@ -285,18 +345,18 @@
             <CCard v-if="discountModal">
               <template>
                 <CCardBody>
-<!--                  <div>-->
+                  <!--                  <div>-->
 
 
-<!--                    <CAlert-->
-<!--                        v-for="(value,key) in errors"-->
-<!--                        :key="value.message"-->
-<!--                        color="danger"-->
-<!--                        :show="isError"-->
-<!--                    >-->
-<!--                      {{ key }}: {{ value[0] }}-->
-<!--                    </CAlert>-->
-<!--                  </div>-->
+                  <!--                    <CAlert-->
+                  <!--                        v-for="(value,key) in errors"-->
+                  <!--                        :key="value.message"-->
+                  <!--                        color="danger"-->
+                  <!--                        :show="isError"-->
+                  <!--                    >-->
+                  <!--                      {{ key }}: {{ value[0] }}-->
+                  <!--                    </CAlert>-->
+                  <!--                  </div>-->
                   <CRow>
                     <CCol lg="12">
                       <CInput
@@ -388,6 +448,8 @@ export default {
       search: '',
       total: 0,
       loading: false,
+      load: false,
+      pageCount: 0,
       pagination: {external: true},
       categories: [],
       selectPaymentTypes: [],
@@ -450,7 +512,9 @@ export default {
       paymentMovements: [],
       paymentsModal: false,
       discountModal: false,
-      checkingAccountUUID:''
+      checkingAccountUUID: '',
+      plateFilter: '',
+      customerFilter:''
     };
   },
 
@@ -488,7 +552,6 @@ export default {
     },
 
 
-
     async getServiceList() {
 
       let response = await new ServiceService().getServicesList();
@@ -498,17 +561,24 @@ export default {
 
     },
 
-    async getCheckingAccountList() {
+    async getCheckingAccountList(activePage) {
 
-      let response = await new CheckingAccountService().checkingAccountList();
+      this.load = true
+      if(typeof(activePage)!=='number'){
+        activePage=this.page
+      }
+      let response = await new CheckingAccountService().checkingAccountList(activePage,this.plateFilter,this.customerFilter);
 
       this.checkingAccounts = response.data.data
+
+      this.pageCount = response.data.activePage
+      this.load = false
 
     },
 
     async getPaymentMovementsList(id) {
 
-      this.checkingAccountUUID=id
+      this.checkingAccountUUID = id
       let response = await new CheckingAccountService().getPaymentMovement(id);
 
       this.paymentMovements = response.data
@@ -637,7 +707,6 @@ export default {
         })
 
 
-
       } else if (a.response.status === 401) {
         this.isError = false;
         this.isError = true;
@@ -681,11 +750,11 @@ export default {
         this.isError = false;
         this.isError = true;
         this.errors = a.response.data;
-        for (const [key, value] of Object.entries(this.errors)){
+        for (const [key, value] of Object.entries(this.errors)) {
           this.$toast.error({
-          title:'Hata',
-          message:`${key}: ${value}`
-        })
+            title: 'Hata',
+            message: `${key}: ${value}`
+          })
         }
         this.errorHide();
       }
@@ -694,7 +763,14 @@ export default {
 
   },
 
-  watch: {},
+  watch: {
+
+    page: function (val) {
+      console.log(val)
+      this.getCheckingAccountList(this.page)
+
+    },
+  },
 
   created() {
 
@@ -702,7 +778,7 @@ export default {
   },
   mounted() {
 
-    this.getCheckingAccountList()
+    this.getCheckingAccountList(this.page)
     this.intervalFetchData()
     this.getPaymentType()
 
