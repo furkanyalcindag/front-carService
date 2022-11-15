@@ -3,9 +3,24 @@ import authHeader from "@/services/auth-header";
 
 class CheckingAccountService {
 
-    checkingAccountList() {
+    checkingAccountList(activePage,plate,customer) {
 
-        return axios.get(process.env.VUE_APP_API_URL + `/car-service/checking-account-api/`, {headers: authHeader()})
+        var x = plate
+        var y = customer
+        if(plate ==null){
+            x=''
+        }
+         if(customer ==null){
+            y=''
+        }
+        const params = {
+            activePage: activePage,
+            plate:x,
+            customer:y
+
+        };
+
+        return axios.get(process.env.VUE_APP_API_URL + `/car-service/checking-account-api/`, {headers: authHeader(),params})
 
 
     }
